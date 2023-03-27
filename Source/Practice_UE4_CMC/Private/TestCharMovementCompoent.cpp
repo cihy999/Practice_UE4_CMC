@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "TestCharMovementCompoent.h"
+#include "GameFramework/Character.h"
 
 bool UTestCharMovementCompoent::FSavedMove_Test::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* InCharacter, float MaxDelta) const
 {
@@ -24,15 +25,33 @@ void UTestCharMovementCompoent::FSavedMove_Test::Clear()
 
 uint8 UTestCharMovementCompoent::FSavedMove_Test::GetCompressedFlags() const
 {
-    return uint8();
+    // 辨識移動狀態
+
+    uint8 Result = Super::GetCompressedFlags();
+
+    if (Saved_bWantsToSprint) Result |= FLAG_Custom_0;
+
+    return Result;
 }
 
 void UTestCharMovementCompoent::FSavedMove_Test::SetMoveFor(ACharacter* C, float InDeltaTime, FVector const& NewAccel, FNetworkPredictionData_Client_Character& ClientData)
 {
+    // 紀錄角色移動相關資料，以便送給server
+
+    Super::SetMoveFor(C, InDeltaTime, NewAccel, ClientData);
+
+    UTestCharMovementCompoent* CharacterMovement = Cast<UTestCharMovementCompoent>(C->GetCharacterMovement());
+
+    Saved_bWantsToSprint = CharacterMovement->Safe_bWantsToSprint;
 }
 
 void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
 {
+    Super::PrepMoveFor(C);
+
+    UTestCharMovementCompoent* CharacterMovement = Cast<UTestCharMovementCompoent>(C->GetCharacterMovement());
+
+    CharacterMovement->Safe_bWantsToSprint = Saved_bWantsToSprint;
 }
 
 UTestCharMovementCompoent::UTestCharMovementCompoent()
