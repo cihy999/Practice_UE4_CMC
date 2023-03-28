@@ -7,13 +7,14 @@
 #include "TestCharMovementCompoent.generated.h"
 
 /**
- * 
+ * 自定義移動元件
  */
 UCLASS()
 class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovementComponent
 {
 	GENERATED_BODY()
 
+	// 移動紀錄
 	class FSavedMove_Test : public FSavedMove_Character 
 	{
 		typedef FSavedMove_Character Super;
@@ -32,8 +33,24 @@ class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovement
 		virtual void PrepMoveFor(ACharacter* C) override;
 	};
 
+	// 移動預測
+	class FNetworkPredictionData_Client_Test : public FNetworkPredictionData_Client_Character
+	{
+	public:
+		FNetworkPredictionData_Client_Test(const UCharacterMovementComponent& ClientMovement);
+
+		typedef FNetworkPredictionData_Client_Character Super;
+
+		/** Allocate a new saved move. Subclasses should override this if they want to use a custom move class. */
+		virtual FSavedMovePtr AllocateNewMove() override;
+	};
+
 	bool Safe_bWantsToSprint;
 
 public:
-	UTestCharMovementCompoent();
+	/** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */
+	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+
+public:
+	UTestCharMovementCompoent() {};
 };

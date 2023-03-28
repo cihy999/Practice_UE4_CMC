@@ -54,6 +54,28 @@ void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
     CharacterMovement->Safe_bWantsToSprint = Saved_bWantsToSprint;
 }
 
-UTestCharMovementCompoent::UTestCharMovementCompoent()
+UTestCharMovementCompoent::FNetworkPredictionData_Client_Test::FNetworkPredictionData_Client_Test(const UCharacterMovementComponent& ClientMovement) 
+    : Super(ClientMovement)
 {
+
+}
+
+FSavedMovePtr UTestCharMovementCompoent::FNetworkPredictionData_Client_Test::AllocateNewMove()
+{
+    return FSavedMovePtr(new FSavedMove_Test());
+}
+
+FNetworkPredictionData_Client* UTestCharMovementCompoent::GetPredictionData_Client() const
+{
+    check(PawnOwner != nullptr)
+
+    if (ClientPredictionData == nullptr)
+    {
+        UTestCharMovementCompoent* MutableThis = const_cast<UTestCharMovementCompoent*>(this);
+        MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_Test(*this);
+        MutableThis->ClientPredictionData->MaxSmoothNetUpdateDist = 92.f;
+        MutableThis->ClientPredictionData->NoSmoothNetUpdateDist = 140.f;
+    }
+
+    return ClientPredictionData;
 }
