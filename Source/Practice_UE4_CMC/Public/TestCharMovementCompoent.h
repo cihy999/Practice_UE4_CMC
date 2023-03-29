@@ -50,6 +50,9 @@ class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovement
 public:
 	/** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
+protected:
+	/** Unpack compressed flags from a saved move and set state accordingly. See FSavedMove_Character. */
+	virtual void UpdateFromCompressedFlags(uint8 Flags);
 
 public:
 	UTestCharMovementCompoent() {};

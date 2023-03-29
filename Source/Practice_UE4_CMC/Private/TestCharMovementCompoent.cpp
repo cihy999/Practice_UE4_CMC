@@ -79,3 +79,10 @@ FNetworkPredictionData_Client* UTestCharMovementCompoent::GetPredictionData_Clie
 
     return ClientPredictionData;
 }
+
+void UTestCharMovementCompoent::UpdateFromCompressedFlags(uint8 Flags)
+{
+    Super::UpdateFromCompressedFlags(Flags);
+
+    Safe_bWantsToSprint = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
+}
