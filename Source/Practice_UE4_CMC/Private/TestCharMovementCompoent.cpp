@@ -86,3 +86,30 @@ void UTestCharMovementCompoent::UpdateFromCompressedFlags(uint8 Flags)
 
     Safe_bWantsToSprint = (Flags & FSavedMove_Character::FLAG_Custom_0) != 0;
 }
+
+void UTestCharMovementCompoent::OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity)
+{
+    Super::OnMovementUpdated(DeltaSeconds, OldLocation, OldVelocity);
+
+    if (MovementMode == EMovementMode::MOVE_Walking)
+    {
+        if (Safe_bWantsToSprint)
+        {
+            MaxWalkSpeed = Sprint_MaxWalkSpeed;
+        }
+        else
+        {
+            MaxWalkSpeed = Walk_MaxWalkSpeed;
+        }
+    }
+}
+
+void UTestCharMovementCompoent::SprintPressed()
+{
+    Safe_bWantsToSprint = true;
+}
+
+void UTestCharMovementCompoent::SprintReleased()
+{
+    Safe_bWantsToSprint = false;
+}
