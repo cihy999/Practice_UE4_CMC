@@ -8,12 +8,16 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "TestCharMovementCompoent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // APractice_UE4_CMCCharacter
 
-APractice_UE4_CMCCharacter::APractice_UE4_CMCCharacter()
+APractice_UE4_CMCCharacter::APractice_UE4_CMCCharacter(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UTestCharMovementCompoent>(ACharacter::CharacterMovementComponentName))
 {
+	TestCharMovementCompoent = Cast<UTestCharMovementCompoent>(GetCharacterMovement());
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
