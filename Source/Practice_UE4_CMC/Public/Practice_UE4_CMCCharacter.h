@@ -24,6 +24,7 @@ protected:
 	class UCameraComponent* FollowCamera;
 
 public:
+	// 利用FObjectInitializer替換Movement Component
 	APractice_UE4_CMCCharacter(const FObjectInitializer& ObjectInitializer);
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
