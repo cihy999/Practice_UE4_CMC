@@ -16,7 +16,7 @@
 APractice_UE4_CMCCharacter::APractice_UE4_CMCCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UTestCharMovementCompoent>(ACharacter::CharacterMovementComponentName))
 {
-	TestCharMovementCompoent = Cast<UTestCharMovementCompoent>(GetCharacterMovement());
+	TestMovement = Cast<UTestCharMovementCompoent>(GetCharacterMovement());
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);

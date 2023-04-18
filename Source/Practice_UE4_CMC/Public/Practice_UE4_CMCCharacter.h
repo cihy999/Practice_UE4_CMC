@@ -13,7 +13,7 @@ class APractice_UE4_CMCCharacter : public ACharacter
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
-	class UTestCharMovementCompoent* TestCharMovementCompoent;
+	class UTestCharMovementCompoent* TestMovement;
 
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
