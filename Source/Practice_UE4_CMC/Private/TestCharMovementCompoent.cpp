@@ -47,6 +47,8 @@ void UTestCharMovementCompoent::FSavedMove_Test::SetMoveFor(ACharacter* C, float
 
 void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
 {
+    // 從Server端校正移動
+
     Super::PrepMoveFor(C);
 
     UTestCharMovementCompoent* CharacterMovement = Cast<UTestCharMovementCompoent>(C->GetCharacterMovement());

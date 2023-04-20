@@ -33,7 +33,7 @@ class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovement
 		virtual void PrepMoveFor(ACharacter* C) override;
 	};
 
-	// 移動預測
+	// 移動記錄傳輸管理
 	class FNetworkPredictionData_Client_Test : public FNetworkPredictionData_Client_Character
 	{
 	public:
@@ -44,14 +44,6 @@ class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovement
 		/** Allocate a new saved move. Subclasses should override this if they want to use a custom move class. */
 		virtual FSavedMovePtr AllocateNewMove() override;
 	};
-
-	UPROPERTY(EditDefaultsOnly)
-	float Sprint_MaxWalkSpeed;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Walk_MaxWalkSpeed;
-
-	bool Safe_bWantsToSprint;
 
 public:
 	UTestCharMovementCompoent() {};
@@ -74,4 +66,15 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SprintReleased();
+
+public:
+	UPROPERTY(EditDefaultsOnly)
+	float Sprint_MaxWalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Walk_MaxWalkSpeed;
+
+#pragma region Flags
+	bool Safe_bWantsToSprint;
+#pragma endregion
 };
