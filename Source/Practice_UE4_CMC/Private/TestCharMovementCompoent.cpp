@@ -3,6 +3,8 @@
 #include "TestCharMovementCompoent.h"
 #include "GameFramework/Character.h"
 
+#pragma region SavedMove
+
 bool UTestCharMovementCompoent::FSavedMove_Test::CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* InCharacter, float MaxDelta) const
 {
     // 如果資料相同，不需要送上server(=true)
@@ -56,7 +58,11 @@ void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
     CharacterMovement->Safe_bWantsToSprint = Saved_bWantsToSprint;
 }
 
-UTestCharMovementCompoent::FNetworkPredictionData_Client_Test::FNetworkPredictionData_Client_Test(const UCharacterMovementComponent& ClientMovement) 
+#pragma endregion
+
+#pragma region NetworkClientData
+
+UTestCharMovementCompoent::FNetworkPredictionData_Client_Test::FNetworkPredictionData_Client_Test(const UCharacterMovementComponent& ClientMovement)
     : Super(ClientMovement)
 {
 
@@ -67,17 +73,27 @@ FSavedMovePtr UTestCharMovementCompoent::FNetworkPredictionData_Client_Test::All
     return FSavedMovePtr(new FSavedMove_Test());
 }
 
+#pragma endregion
+
+#pragma region CMC
+
+UTestCharMovementCompoent::UTestCharMovementCompoent()
+{
+    // 要加，不然不能蹲...
+    NavAgentProps.bCanCrouch = true;
+}
+
 FNetworkPredictionData_Client* UTestCharMovementCompoent::GetPredictionData_Client() const
 {
     check(PawnOwner != nullptr)
 
-    if (ClientPredictionData == nullptr)
-    {
-        UTestCharMovementCompoent* MutableThis = const_cast<UTestCharMovementCompoent*>(this);
-        MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_Test(*this);
-        MutableThis->ClientPredictionData->MaxSmoothNetUpdateDist = 92.f;
-        MutableThis->ClientPredictionData->NoSmoothNetUpdateDist = 140.f;
-    }
+        if (ClientPredictionData == nullptr)
+        {
+            UTestCharMovementCompoent* MutableThis = const_cast<UTestCharMovementCompoent*>(this);
+            MutableThis->ClientPredictionData = new FNetworkPredictionData_Client_Test(*this);
+            MutableThis->ClientPredictionData->MaxSmoothNetUpdateDist = 92.f;
+            MutableThis->ClientPredictionData->NoSmoothNetUpdateDist = 140.f;
+        }
 
     return ClientPredictionData;
 }
@@ -106,6 +122,11 @@ void UTestCharMovementCompoent::OnMovementUpdated(float DeltaSeconds, const FVec
     }
 }
 
+#pragma endregion
+
+
+#pragma region Input
+
 void UTestCharMovementCompoent::SprintPressed()
 {
     Safe_bWantsToSprint = true;
@@ -115,3 +136,10 @@ void UTestCharMovementCompoent::SprintReleased()
 {
     Safe_bWantsToSprint = false;
 }
+
+void UTestCharMovementCompoent::CrouchPressed()
+{
+    bWantsToCrouch = ~bWantsToCrouch;
+}
+
+#pragma endregion
