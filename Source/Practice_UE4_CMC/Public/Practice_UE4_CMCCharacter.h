@@ -74,4 +74,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	/// <summary>
+	/// 取得自定義移動元件
+	/// </summary>
+	/// <returns></returns>
+	FORCEINLINE class UTestCharMovementCompoent* GetTestCharMovement() const { return TestMovement; }
 };
