@@ -2,6 +2,7 @@
 
 #include "TestCharMovementCompoent.h"
 #include "GameFramework/Character.h"
+#include "Practice_UE4_CMCCharacter.h"
 
 #pragma region SavedMove
 
@@ -98,6 +99,13 @@ FNetworkPredictionData_Client* UTestCharMovementCompoent::GetPredictionData_Clie
     return ClientPredictionData;
 }
 
+void UTestCharMovementCompoent::InitializeComponent()
+{
+    Super::InitializeComponent();
+
+    TestCharacterOwner = Cast<APractice_UE4_CMCCharacter>(GetOwner());
+}
+
 void UTestCharMovementCompoent::UpdateFromCompressedFlags(uint8 Flags)
 {
     Super::UpdateFromCompressedFlags(Flags);
@@ -140,6 +148,11 @@ void UTestCharMovementCompoent::SprintReleased()
 void UTestCharMovementCompoent::CrouchPressed()
 {
     bWantsToCrouch = ~bWantsToCrouch;
+}
+
+bool UTestCharMovementCompoent::IsCustomMovementMode(ECustomMovementMode InCustomMovementMode)
+{
+    return MovementMode == MOVE_Custom && CustomMovementMode == InCustomMovementMode;
 }
 
 #pragma endregion

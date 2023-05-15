@@ -6,6 +6,15 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TestCharMovementCompoent.generated.h"
 
+// 自定義移動模式
+UENUM(BlueprintType)
+enum ECustomMovementMode
+{
+	CMOVE_None		UMETA(Hidden),
+	CMOVE_Slide		UMETA(DisplayName = "Slide"),
+	CMOVE_MAX		UMETA(Hidden),
+};
+
 /**
  * 自定義移動元件
  */
@@ -52,6 +61,13 @@ public:
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 
 protected:
+	/**
+	 * Initializes the component.  Occurs at level startup or actor spawn. This is before BeginPlay (Actor or Component).
+	 * All Components in the level will be Initialized on load before any Actor/Component gets BeginPlay
+	 * Requires component to be registered, and bWantsInitializeComponent to be true.
+	 */
+	virtual void InitializeComponent() override;
+
 	/** Unpack compressed flags from a saved move and set state accordingly. See FSavedMove_Character. */
 	virtual void UpdateFromCompressedFlags(uint8 Flags);
 	
@@ -69,12 +85,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void CrouchPressed();
 
+	UFUNCTION(BlueprintPure)
+	bool IsCustomMovementMode(ECustomMovementMode InCustomMovementMode);
+
 public:
 	UPROPERTY(EditDefaultsOnly)
 	float Sprint_MaxWalkSpeed;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Walk_MaxWalkSpeed;
+
+	UPROPERTY(Transient)
+	class APractice_UE4_CMCCharacter* TestCharacterOwner;
 
 	bool Safe_bWantsToSprint;
 };
