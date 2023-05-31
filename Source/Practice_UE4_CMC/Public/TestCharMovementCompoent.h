@@ -69,7 +69,7 @@ protected:
 	virtual void InitializeComponent() override;
 
 	/** Unpack compressed flags from a saved move and set state accordingly. See FSavedMove_Character. */
-	virtual void UpdateFromCompressedFlags(uint8 Flags);
+	virtual void UpdateFromCompressedFlags(uint8 Flags) override;
 	
 	/// <summary>
 	/// 在Perform Move最後呼叫，主要更新角色移動狀態(位置、旋轉、轉換模式...)
@@ -88,12 +88,30 @@ public:
 	UFUNCTION(BlueprintPure)
 	bool IsCustomMovementMode(ECustomMovementMode InCustomMovementMode);
 
+private:
+	void EnterSlide();
+	void ExitSlide();
+	void PhysSlide(float deltaTime, int32 Iterations);
+	bool GetSlideSurface(FHitResult& Hit) const;
+
 public:
 	UPROPERTY(EditDefaultsOnly)
 	float Sprint_MaxWalkSpeed;
 
 	UPROPERTY(EditDefaultsOnly)
 	float Walk_MaxWalkSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Slide_MinSpeed = 350.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Slide_EnterImpulse = 500.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Slide_GravityForce = 5000.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Slide_Friction = 1.3f;
 
 	UPROPERTY(Transient)
 	class APractice_UE4_CMCCharacter* TestCharacterOwner;

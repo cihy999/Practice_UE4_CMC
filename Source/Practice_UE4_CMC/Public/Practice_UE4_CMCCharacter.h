@@ -79,4 +79,10 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	FORCEINLINE class UTestCharMovementCompoent* GetTestCharMovement() const { return TestMovement; }
+
+	/// <summary>
+	/// 取得LineTrace應該忽略的對象
+	/// </summary>
+	/// <returns></returns>
+	FCollisionQueryParams GetIgnoreCharacterParams() const;
 };

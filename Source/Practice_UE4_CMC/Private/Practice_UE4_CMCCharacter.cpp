@@ -80,6 +80,20 @@ void APractice_UE4_CMCCharacter::SetupPlayerInputComponent(class UInputComponent
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &APractice_UE4_CMCCharacter::OnResetVR);
 }
 
+FCollisionQueryParams APractice_UE4_CMCCharacter::GetIgnoreCharacterParams() const
+{
+	// 通常Character的子物件都要忽略掉
+
+	FCollisionQueryParams Params;
+
+	TArray<AActor*> CharacterChildren;
+	GetAllChildActors(CharacterChildren);
+	Params.AddIgnoredActors(CharacterChildren);
+	Params.AddIgnoredActor(this);
+
+	return FCollisionQueryParams();
+}
+
 
 void APractice_UE4_CMCCharacter::OnResetVR()
 {
