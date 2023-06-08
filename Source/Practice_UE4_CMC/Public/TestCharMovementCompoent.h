@@ -28,8 +28,12 @@ class PRACTICE_UE4_CMC_API UTestCharMovementCompoent : public UCharacterMovement
 	{
 		typedef FSavedMove_Character Super;
 
+		// Flag
 		uint8 Saved_bWantsToSprint : 1;
 
+		uint8 Saved_bPrevWantsToCrouch: 1;
+
+	public:
 		/** Returns true if this move can be combined with NewMove for replication without changing any behavior */
 		virtual bool CanCombineWith(const FSavedMovePtr& NewMove, ACharacter* InCharacter, float MaxDelta) const override;
 		/** Clear saved move properties, so it can be re-used. */
@@ -60,6 +64,10 @@ public:
 	/** Get prediction data for a client game. Should not be used if not running as a client. Allocates the data on demand and can be overridden to allocate a custom override if desired. Result must be a FNetworkPredictionData_Client_Character. */
 	virtual FNetworkPredictionData_Client* GetPredictionData_Client() const override;
 
+	virtual bool IsMovingOnGround() const override;
+	/** Returns true if the character is allowed to crouch in the current state. By default it is allowed when walking or falling, if CanEverCrouch() is true. */
+	virtual bool CanCrouchInCurrentState() const override;
+
 protected:
 	/**
 	 * Initializes the component.  Occurs at level startup or actor spawn. This is before BeginPlay (Actor or Component).
@@ -76,6 +84,16 @@ protected:
 	/// </summary>
 	virtual void OnMovementUpdated(float DeltaSeconds, const FVector& OldLocation, const FVector& OldVelocity) override;
 
+	/** Update the character state in PerformMovement right before doing the actual position change */
+	virtual void UpdateCharacterStateBeforeMovement(float DeltaSeconds) override;
+
+	/// <summary>
+	/// 專門提供給自訂移動使用(從這進入移動位置計算)
+	/// </summary>
+	/// <param name="deltaTime"></param>
+	/// <param name="Iterations"></param>
+	virtual void PhysCustom(float deltaTime, int32 Iterations) override;
+
 public:
 	UFUNCTION(BlueprintCallable)
 	void SprintPressed();
@@ -86,7 +104,7 @@ public:
 	void CrouchPressed();
 
 	UFUNCTION(BlueprintPure)
-	bool IsCustomMovementMode(ECustomMovementMode InCustomMovementMode);
+	bool IsCustomMovementMode(ECustomMovementMode InCustomMovementMode) const;
 
 private:
 	void EnterSlide();
@@ -95,26 +113,16 @@ private:
 	bool GetSlideSurface(FHitResult& Hit) const;
 
 public:
-	UPROPERTY(EditDefaultsOnly)
-	float Sprint_MaxWalkSpeed;
+	UPROPERTY(EditDefaultsOnly) float Sprint_MaxWalkSpeed;
+	UPROPERTY(EditDefaultsOnly) float Walk_MaxWalkSpeed;
 
-	UPROPERTY(EditDefaultsOnly)
-	float Walk_MaxWalkSpeed;
+	UPROPERTY(EditDefaultsOnly) float Slide_MinSpeed = 350.f;
+	UPROPERTY(EditDefaultsOnly) float Slide_EnterImpulse = 500.f;
+	UPROPERTY(EditDefaultsOnly) float Slide_GravityForce = 5000.f;
+	UPROPERTY(EditDefaultsOnly) float Slide_Friction = 1.3f;
 
-	UPROPERTY(EditDefaultsOnly)
-	float Slide_MinSpeed = 350.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Slide_EnterImpulse = 500.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Slide_GravityForce = 5000.f;
-
-	UPROPERTY(EditDefaultsOnly)
-	float Slide_Friction = 1.3f;
-
-	UPROPERTY(Transient)
-	class APractice_UE4_CMCCharacter* TestCharacterOwner;
+	UPROPERTY(Transient) class APractice_UE4_CMCCharacter* TestCharacterOwner;
 
 	bool Safe_bWantsToSprint;
+	bool Safe_bPrevWantsToCrouch;	// 紀錄上次是否按蹲下, 第二次就會進滑行判定
 };

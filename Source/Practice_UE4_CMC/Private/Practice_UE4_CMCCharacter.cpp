@@ -91,9 +91,8 @@ FCollisionQueryParams APractice_UE4_CMCCharacter::GetIgnoreCharacterParams() con
 	Params.AddIgnoredActors(CharacterChildren);
 	Params.AddIgnoredActor(this);
 
-	return FCollisionQueryParams();
+	return Params;
 }
-
 
 void APractice_UE4_CMCCharacter::OnResetVR()
 {

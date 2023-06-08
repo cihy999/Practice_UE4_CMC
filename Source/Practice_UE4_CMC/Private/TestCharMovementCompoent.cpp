@@ -47,6 +47,7 @@ void UTestCharMovementCompoent::FSavedMove_Test::SetMoveFor(ACharacter* C, float
     UTestCharMovementCompoent* CharacterMovement = Cast<UTestCharMovementCompoent>(C->GetCharacterMovement());
 
     Saved_bWantsToSprint = CharacterMovement->Safe_bWantsToSprint;
+    Saved_bPrevWantsToCrouch = CharacterMovement->Safe_bPrevWantsToCrouch;
 }
 
 void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
@@ -58,6 +59,7 @@ void UTestCharMovementCompoent::FSavedMove_Test::PrepMoveFor(ACharacter* C)
     UTestCharMovementCompoent* CharacterMovement = Cast<UTestCharMovementCompoent>(C->GetCharacterMovement());
 
     CharacterMovement->Safe_bWantsToSprint = Saved_bWantsToSprint;
+    CharacterMovement->Safe_bPrevWantsToCrouch = Saved_bPrevWantsToCrouch;
 }
 
 #pragma endregion
@@ -122,16 +124,68 @@ void UTestCharMovementCompoent::OnMovementUpdated(float DeltaSeconds, const FVec
     {
         if (Safe_bWantsToSprint)
         {
+            // Crouch 移動速度要大於滑行最低的速度才可能滑的動
             MaxWalkSpeed = Sprint_MaxWalkSpeed;
+            MaxWalkSpeedCrouched = MaxWalkSpeed / 2;
         }
         else
         {
             MaxWalkSpeed = Walk_MaxWalkSpeed;
+            MaxWalkSpeedCrouched = MaxWalkSpeed / 2;
         }
+    }
+
+    Safe_bPrevWantsToCrouch = bWantsToCrouch;
+}
+
+bool UTestCharMovementCompoent::IsMovingOnGround() const
+{
+    return Super::IsMovingOnGround() || IsCustomMovementMode(CMOVE_Slide);
+}
+
+bool UTestCharMovementCompoent::CanCrouchInCurrentState() const
+{
+    // 多看 IsMovingOnGround 是因為不做空中蹲
+    return Super::CanCrouchInCurrentState() || IsMovingOnGround();
+}
+
+void UTestCharMovementCompoent::UpdateCharacterStateBeforeMovement(float DeltaSeconds)
+{
+    // 按蹲下(C鍵...)兩次(第一次蹲、第二次起來)時，看能不能滑行
+    if (MovementMode == MOVE_Walking && !bWantsToCrouch && Safe_bPrevWantsToCrouch)
+    {
+        FHitResult potentialSlideSurface;
+        if (Velocity.SizeSquared() > pow(Slide_MinSpeed, 2) && GetSlideSurface(potentialSlideSurface))
+        {
+            EnterSlide();
+        }
+    }
+
+    if (IsCustomMovementMode(CMOVE_Slide) && !bWantsToCrouch)
+    {
+        ExitSlide();
+    }
+
+    // Base會處理Crouch，在這之前處理好Slide
+    Super::UpdateCharacterStateBeforeMovement(DeltaSeconds);
+}
+
+void UTestCharMovementCompoent::PhysCustom(float deltaTime, int32 Iterations)
+{
+    Super::PhysCustom(deltaTime, Iterations);
+
+    switch (CustomMovementMode)
+    {
+    case CMOVE_Slide:
+        PhysSlide(deltaTime, Iterations);
+		break;
+    default:
+        UE_LOG(LogTemp, Fatal, TEXT("Isvalid Movement Mode"));
+        break;
     }
 }
 
-#pragma endregion
+#pragma endregion CMC
 
 #pragma region Input
 
@@ -150,9 +204,9 @@ void UTestCharMovementCompoent::CrouchPressed()
     bWantsToCrouch = ~bWantsToCrouch;
 }
 
-#pragma endregion
+#pragma endregion Input
 
-bool UTestCharMovementCompoent::IsCustomMovementMode(ECustomMovementMode InCustomMovementMode)
+bool UTestCharMovementCompoent::IsCustomMovementMode(ECustomMovementMode InCustomMovementMode) const
 {
     return MovementMode == MOVE_Custom && CustomMovementMode == InCustomMovementMode;
 }
@@ -163,6 +217,8 @@ void UTestCharMovementCompoent::EnterSlide()
     bWantsToCrouch = true;
     Velocity += Velocity.GetSafeNormal2D() * Slide_EnterImpulse;
     SetMovementMode(MOVE_Custom, CMOVE_Slide);
+
+    UE_LOG(LogTemp, Warning, TEXT("EnterSlide"));
 }
 
 void UTestCharMovementCompoent::ExitSlide()
@@ -174,6 +230,8 @@ void UTestCharMovementCompoent::ExitSlide()
     FHitResult hit;
     SafeMoveUpdatedComponent(FVector::ZeroVector, newRotation, true, hit);
     SetMovementMode(MOVE_Walking);
+
+    UE_LOG(LogTemp, Warning, TEXT("ExitSlide"));
 }
 
 void UTestCharMovementCompoent::PhysSlide(float deltaTime, int32 Iterations)
@@ -188,12 +246,14 @@ void UTestCharMovementCompoent::PhysSlide(float deltaTime, int32 Iterations)
 
     // 如果不在滑行表面 or 速度不夠就離開slide mode
     FHitResult surfaceHit;
-    if (GetSlideSurface(surfaceHit) || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
+    if (!GetSlideSurface(surfaceHit) || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
     {
         ExitSlide();
         StartNewPhysics(deltaTime, Iterations);
         return;
     }
+
+    UE_LOG(LogTemp, Warning, TEXT("PhysSlide"));
 
     // Surface Gravity
     // v += a * dt
@@ -213,7 +273,8 @@ void UTestCharMovementCompoent::PhysSlide(float deltaTime, int32 Iterations)
     // 計算速度
     if (!HasAnimRootMotion() && !CurrentRootMotion.HasOverrideVelocity())
     {
-        CalcVelocity(deltaTime, Slide_Friction, false, GetMaxBrakingDeceleration());
+        // 將摩擦力影響到速度上(Fluid必要true，不然摩擦力沒效)
+        CalcVelocity(deltaTime, Slide_Friction, true, GetMaxBrakingDeceleration());
     }
     ApplyRootMotionToVelocity(deltaTime);
 
@@ -243,7 +304,7 @@ void UTestCharMovementCompoent::PhysSlide(float deltaTime, int32 Iterations)
 
     // 再檢查滑行條件
     FHitResult newSurfaceHit;
-    if (GetSlideSurface(newSurfaceHit) || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
+    if (!GetSlideSurface(newSurfaceHit) || Velocity.SizeSquared() < pow(Slide_MinSpeed, 2))
     {
         ExitSlide();
     }
